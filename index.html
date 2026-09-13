@@ -1,0 +1,546 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+#app{display:flex;flex-direction:column;gap:0;min-height:600px;background:var(--color-background-primary)}
+.header{padding:14px 20px 10px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:18px;font-weight:500;color:var(--color-text-primary);letter-spacing:-0.5px}
+.brand span{color:#7F77DD}
+.subtitle{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.fit-score-pill{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;background:var(--color-background-success);color:var(--color-text-success)}
+.main{display:flex;gap:0;flex:1}
+.panel-left{width:200px;border-right:0.5px solid var(--color-border-tertiary);padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--color-background-secondary)}
+.panel-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:10px;position:relative}
+.panel-right{width:210px;border-left:0.5px solid var(--color-border-tertiary);padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--color-background-secondary)}
+.section-title{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+.slider-row{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
+.slider-label{display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-primary)}
+.slider-val{font-weight:500;color:#7F77DD;min-width:36px;text-align:right}
+input[type=range]{width:100%;height:4px;accent-color:#7F77DD}
+canvas{border-radius:8px;cursor:grab;background:transparent}
+canvas:active{cursor:grabbing}
+.cloth-select{display:flex;flex-direction:column;gap:6px}
+.cloth-btn{padding:6px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;font-size:12px;cursor:pointer;text-align:left;background:var(--color-background-primary);color:var(--color-text-primary);transition:all 0.15s}
+.cloth-btn:hover{border-color:#7F77DD;color:#7F77DD}
+.cloth-btn.active{background:#EEEDFE;border-color:#7F77DD;color:#534AB7}
+.math-badge{font-size:10px;background:#EEEDFE;color:#534AB7;padding:1px 6px;border-radius:10px;margin-left:4px;font-weight:500}
+.score-section{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:10px}
+.score-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.score-row:last-child{border-bottom:none}
+.score-label{color:var(--color-text-secondary)}
+.score-num{font-weight:500;font-size:13px}
+.score-good{color:#0F6E56}
+.score-warn{color:#BA7517}
+.score-bad{color:#A32D2D}
+.info-box{background:#EEEDFE;border-radius:6px;padding:8px 10px;font-size:11px;color:#3C3489;line-height:1.5}
+.canvas-ctrl{display:flex;gap:8px;margin-top:6px}
+.ctrl-btn{padding:4px 10px;border:0.5px solid var(--color-border-tertiary);border-radius:5px;font-size:11px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all 0.15s}
+.ctrl-btn:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.ctrl-btn.active{background:#EEEDFE;color:#534AB7;border-color:#7F77DD}
+.formula-strip{font-size:10px;color:var(--color-text-secondary);text-align:center;margin-top:4px;font-family:var(--font-mono)}
+.view-mode-row{display:flex;gap:5px;margin-bottom:6px}
+.vm-btn{flex:1;padding:4px 0;border:0.5px solid var(--color-border-tertiary);border-radius:5px;font-size:11px;cursor:pointer;text-align:center;background:var(--color-background-primary);color:var(--color-text-secondary);transition:all 0.15s}
+.vm-btn.active{background:#7F77DD;color:#fff;border-color:#7F77DD}
+.color-row{display:flex;gap:5px;margin-bottom:4px;flex-wrap:wrap}
+.color-swatch{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform 0.15s}
+.color-swatch.active{border-color:var(--color-text-primary);transform:scale(1.15)}
+</style>
+<div id="app">
+  <div class="header">
+    <div>
+      <div class="brand">FIT<span>UNIVERSE</span></div>
+      <div class="subtitle">3D 가상 피팅 서비스 · 기하학 기반 아바타 엔진</div>
+    </div>
+    <div id="fit-pill" class="fit-score-pill">피팅 점수 계산 중...</div>
+  </div>
+  <div class="main">
+    <div class="panel-left">
+      <div>
+        <div class="section-title">신체 치수 조절</div>
+        <div class="slider-row"><div class="slider-label"><span>키 (cm)</span><span class="slider-val" id="v-height">170</span></div><input type="range" id="s-height" min="150" max="195" value="170" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>가슴둘레 <span class="math-badge">r=C/2π</span></span><span class="slider-val" id="v-chest">92</span></div><input type="range" id="s-chest" min="72" max="130" value="92" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>허리둘레</span><span class="slider-val" id="v-waist">76</span></div><input type="range" id="s-waist" min="58" max="110" value="76" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>엉덩이둘레</span><span class="slider-val" id="v-hip">96</span></div><input type="range" id="s-hip" min="78" max="130" value="96" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>어깨너비</span><span class="slider-val" id="v-shoulder">44</span></div><input type="range" id="s-shoulder" min="34" max="58" value="44" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>팔길이</span><span class="slider-val" id="v-arm">60</span></div><input type="range" id="s-arm" min="50" max="75" value="60" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>다리길이</span><span class="slider-val" id="v-leg">80</span></div><input type="range" id="s-leg" min="66" max="100" value="80" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>허벅지둘레</span><span class="slider-val" id="v-thigh">54</span></div><input type="range" id="s-thigh" min="40" max="80" value="54" step="1"></div>
+      </div>
+      <div>
+        <div class="section-title">조명 설정 <span class="math-badge">Lambert</span></div>
+        <div class="slider-row"><div class="slider-label"><span>조명 강도</span><span class="slider-val" id="v-light">75</span></div><input type="range" id="s-light" min="20" max="100" value="75" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>조명 각도 X</span><span class="slider-val" id="v-lx">45</span></div><input type="range" id="s-lx" min="-90" max="90" value="45" step="1"></div>
+        <div class="slider-row"><div class="slider-label"><span>조명 각도 Y</span><span class="slider-val" id="v-ly">30</span></div><input type="range" id="s-ly" min="-90" max="90" value="30" step="1"></div>
+      </div>
+    </div>
+    <div class="panel-center">
+      <div class="view-mode-row">
+        <button class="vm-btn active" id="vm-solid" onclick="setView('solid')">솔리드</button>
+        <button class="vm-btn" id="vm-wire" onclick="setView('wire')">와이어프레임</button>
+        <button class="vm-btn" id="vm-xray" onclick="setView('xray')">X-레이</button>
+      </div>
+      <canvas id="c3d" width="370" height="500"></canvas>
+      <div class="formula-strip" id="formula-strip">원통: x=r·cos(θ), y=h·t, z=r·sin(θ) | 투영: x'=x/(z/800+1)</div>
+      <div class="canvas-ctrl">
+        <button class="ctrl-btn" onclick="resetView()">↺ 리셋</button>
+        <button class="ctrl-btn" id="btn-auto" onclick="toggleAuto()">▶ 자동 회전</button>
+        <button class="ctrl-btn" onclick="snapFront()">정면</button>
+        <button class="ctrl-btn" onclick="snapSide()">측면</button>
+      </div>
+    </div>
+    <div class="panel-right">
+      <div>
+        <div class="section-title">의류 선택</div>
+        <div class="cloth-select">
+          <button class="cloth-btn active" id="cb-0" onclick="selectCloth(0)">🧥 오버사이즈 자켓<br><span style="font-size:10px;color:var(--color-text-secondary)">가슴 108 · 허리 106</span></button>
+          <button class="cloth-btn" id="cb-1" onclick="selectCloth(1)">👕 슬림 티셔츠<br><span style="font-size:10px;color:var(--color-text-secondary)">가슴 90 · 허리 86</span></button>
+          <button class="cloth-btn" id="cb-2" onclick="selectCloth(2)">👖 와이드 팬츠<br><span style="font-size:10px;color:var(--color-text-secondary)">허리 96 · 힙 110</span></button>
+          <button class="cloth-btn" id="cb-3" onclick="selectCloth(3)">👗 미디 드레스<br><span style="font-size:10px;color:var(--color-text-secondary)">가슴 94 · 허리 82</span></button>
+          <button class="cloth-btn" id="cb-4" onclick="selectCloth(4)">🥼 테일러드 수트<br><span style="font-size:10px;color:var(--color-text-secondary)">가슴 98 · 허리 90</span></button>
+        </div>
+        <div class="color-row" style="margin-top:8px">
+          <div class="section-title" style="width:100%">의류 색상</div>
+          <div class="color-swatch active" style="background:#7F77DD" data-ci="0" onclick="setColor(0,'#7F77DD','#534AB7')"></div>
+          <div class="color-swatch" style="background:#D85A30" data-ci="1" onclick="setColor(1,'#D85A30','#993C1D')"></div>
+          <div class="color-swatch" style="background:#1D9E75" data-ci="2" onclick="setColor(2,'#1D9E75','#0F6E56')"></div>
+          <div class="color-swatch" style="background:#378ADD" data-ci="3" onclick="setColor(3,'#378ADD','#185FA5')"></div>
+          <div class="color-swatch" style="background:#888780" data-ci="4" onclick="setColor(4,'#888780','#5F5E5A')"></div>
+          <div class="color-swatch" style="background:#D4537E" data-ci="5" onclick="setColor(5,'#D4537E','#993556')"></div>
+        </div>
+      </div>
+      <div class="score-section">
+        <div class="section-title" style="margin-bottom:6px">피팅 점수 분석 <span class="math-badge">유클리드</span></div>
+        <div class="score-row"><span class="score-label">가슴 적합도</span><span class="score-num" id="sc-chest">-</span></div>
+        <div class="score-row"><span class="score-label">허리 적합도</span><span class="score-num" id="sc-waist">-</span></div>
+        <div class="score-row"><span class="score-label">엉덩이 적합도</span><span class="score-num" id="sc-hip">-</span></div>
+        <div class="score-row"><span class="score-label">전체 점수</span><span class="score-num" id="sc-total" style="font-size:15px">-</span></div>
+      </div>
+      <div class="info-box" id="info-box">
+        신체 치수를 조절하고 의류를 선택하면 3D 아바타에 실시간으로 반영됩니다. 드래그로 아바타를 회전할 수 있습니다.
+      </div>
+      <div>
+        <div class="section-title">수학 공식 활성화</div>
+        <div id="math-log" style="font-size:10px;color:var(--color-text-secondary);font-family:var(--font-mono);line-height:1.7;max-height:90px;overflow:hidden"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const canvas=document.getElementById('c3d');
+const ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+
+let rotY=0.3,rotX=-0.1,dragging=false,lastX=0,lastY=0;
+let autoRotate=false,autoTimer=null;
+let viewMode='solid';
+let clothIndex=0;
+let clothColor='#7F77DD',clothColorDark='#534AB7';
+
+const clothes=[
+  {name:'오버사이즈 자켓',chest:108,waist:106,hip:108,length:72,type:'top'},
+  {name:'슬림 티셔츠',chest:90,waist:86,hip:88,length:64,type:'top'},
+  {name:'와이드 팬츠',chest:0,waist:96,hip:110,length:98,type:'bottom'},
+  {name:'미디 드레스',chest:94,waist:82,hip:98,length:110,type:'full'},
+  {name:'테일러드 수트',chest:98,waist:90,hip:100,length:70,type:'top'},
+];
+
+function getParams(){
+  const h=+document.getElementById('s-height').value;
+  const chest=+document.getElementById('s-chest').value;
+  const waist=+document.getElementById('s-waist').value;
+  const hip=+document.getElementById('s-hip').value;
+  const shoulder=+document.getElementById('s-shoulder').value;
+  const arm=+document.getElementById('s-arm').value;
+  const leg=+document.getElementById('s-leg').value;
+  const thigh=+document.getElementById('s-thigh').value;
+  const lightI=+document.getElementById('s-light').value/100;
+  const lx=+document.getElementById('s-lx').value*Math.PI/180;
+  const ly=+document.getElementById('s-ly').value*Math.PI/180;
+  return{h,chest,waist,hip,shoulder,arm,leg,thigh,lightI,lx,ly};
+}
+
+function circumToR(c){return c/(2*Math.PI);}
+
+function project(x,y,z,d=800){
+  const denom=z/d+1;
+  return{px:x/denom+W/2,py:y/denom+H*0.52};
+}
+
+function rotateY(x,z,a){return{x:x*Math.cos(a)+z*Math.sin(a),z:-x*Math.sin(a)+z*Math.cos(a)};}
+function rotateX(y,z,a){return{y:y*Math.cos(a)-z*Math.sin(a),z:y*Math.sin(a)+z*Math.cos(a)};}
+
+function applyRot(x,y,z){
+  let r=rotateY(x,z,rotY);x=r.x;z=r.z;
+  let r2=rotateX(y,z,rotX);y=r2.y;z=r2.z;
+  return{x,y,z};
+}
+
+function lambert(nx,ny,nz,lx,ly){
+  const lDir={x:Math.sin(ly)*Math.cos(lx),y:-Math.sin(lx),z:Math.cos(ly)*Math.cos(lx)};
+  const len=Math.sqrt(nx*nx+ny*ny+nz*nz)||1;
+  const dot=(nx/len)*lDir.x+(ny/len)*lDir.y+(nz/len)*lDir.z;
+  return Math.max(dot,0);
+}
+
+function hexToRGB(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return{r,g,b};
+}
+
+function applyLight(hex,intensity,ambient=0.22){
+  const{r,g,b}=hexToRGB(hex);
+  const f=ambient+intensity*(1-ambient);
+  return`rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
+}
+
+function makeCylinder(cx,cy,cz,radius,height,segs,axis='y'){
+  const faces=[];
+  for(let i=0;i<segs;i++){
+    const a0=2*Math.PI*i/segs,a1=2*Math.PI*(i+1)/segs;
+    let verts,nx,ny,nz;
+    if(axis==='y'){
+      verts=[
+        {x:cx+radius*Math.cos(a0),y:cy,       z:cz+radius*Math.sin(a0)},
+        {x:cx+radius*Math.cos(a1),y:cy,       z:cz+radius*Math.sin(a1)},
+        {x:cx+radius*Math.cos(a1),y:cy+height,z:cz+radius*Math.sin(a1)},
+        {x:cx+radius*Math.cos(a0),y:cy+height,z:cz+radius*Math.sin(a0)},
+      ];
+      const mid=(a0+a1)/2;
+      nx=Math.cos(mid);ny=0;nz=Math.sin(mid);
+    }else{
+      verts=[
+        {x:cx,       y:cy+radius*Math.cos(a0),z:cz+radius*Math.sin(a0)},
+        {x:cx,       y:cy+radius*Math.cos(a1),z:cz+radius*Math.sin(a1)},
+        {x:cx+height,y:cy+radius*Math.cos(a1),z:cz+radius*Math.sin(a1)},
+        {x:cx+height,y:cy+radius*Math.cos(a0),z:cz+radius*Math.sin(a0)},
+      ];
+      const mid=(a0+a1)/2;
+      nx=0;ny=Math.cos(mid);nz=Math.sin(mid);
+    }
+    faces.push({verts,nx,ny,nz});
+  }
+  return faces;
+}
+
+function makeEllipsoid(cx,cy,cz,a,b,stacks,slices){
+  const faces=[];
+  for(let i=0;i<stacks;i++){
+    const phi0=Math.PI*i/stacks-Math.PI/2;
+    const phi1=Math.PI*(i+1)/stacks-Math.PI/2;
+    for(let j=0;j<slices;j++){
+      const th0=2*Math.PI*j/slices,th1=2*Math.PI*(j+1)/slices;
+      const verts=[
+        {x:cx+a*Math.cos(phi0)*Math.cos(th0),y:cy+b*Math.sin(phi0),z:cz+a*Math.cos(phi0)*Math.sin(th0)},
+        {x:cx+a*Math.cos(phi0)*Math.cos(th1),y:cy+b*Math.sin(phi0),z:cz+a*Math.cos(phi0)*Math.sin(th1)},
+        {x:cx+a*Math.cos(phi1)*Math.cos(th1),y:cy+b*Math.sin(phi1),z:cz+a*Math.cos(phi1)*Math.sin(th1)},
+        {x:cx+a*Math.cos(phi1)*Math.cos(th0),y:cy+b*Math.sin(phi1),z:cz+a*Math.cos(phi1)*Math.sin(th0)},
+      ];
+      const mphi=(phi0+phi1)/2,mth=(th0+th1)/2;
+      const nx=Math.cos(mphi)*Math.cos(mth),ny=Math.sin(mphi),nz=Math.cos(mphi)*Math.sin(mth);
+      faces.push({verts,nx,ny,nz});
+    }
+  }
+  return faces;
+}
+
+function calcFaceDepth(face){
+  const rVerts=face.verts.map(v=>applyRot(v.x,v.y,v.z));
+  return rVerts.reduce((s,v)=>s+v.z,0)/rVerts.length;
+}
+
+function drawFaces(faces,color,colorDark,lx,ly,lightI){
+  const sorted=[...faces].sort((a,b)=>calcFaceDepth(b)-calcFaceDepth(a));
+  for(const face of sorted){
+    const rVerts=face.verts.map(v=>applyRot(v.x,v.y,v.z));
+    const{nx:rnx,ny:rny,nz:rnz}=applyRot(face.nx,face.ny,face.nz);
+    const I=lambert(rnx,rny,rnz,lx,ly);
+    const zAvg=rVerts.reduce((s,v)=>s+v.z,0)/rVerts.length;
+    const pts=rVerts.map(v=>project(v.x,v.y,v.z));
+    ctx.beginPath();
+    ctx.moveTo(pts[0].px,pts[0].py);
+    for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].px,pts[i].py);
+    ctx.closePath();
+    if(viewMode==='solid'){
+      ctx.fillStyle=applyLight(color,I*lightI);
+      ctx.fill();
+      ctx.strokeStyle=applyLight(colorDark,I*lightI*0.7);
+      ctx.lineWidth=0.3;
+      ctx.stroke();
+    }else if(viewMode==='wire'){
+      ctx.strokeStyle=color;
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+    }else{
+      ctx.fillStyle=`rgba(127,119,221,${0.08+I*lightI*0.18})`;
+      ctx.fill();
+      ctx.strokeStyle=`rgba(83,74,183,${0.3+I*0.4})`;
+      ctx.lineWidth=0.4;
+      ctx.stroke();
+    }
+  }
+}
+
+const SKIN='#E8C5A0',SKIN_D='#C49070';
+const HAIR='#2C2C2A',HAIR_D='#111';
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  const p=getParams();
+  const lx=p.lx,ly=p.ly,lightI=p.lightI;
+
+  const scale=p.h/170;
+  const chestR=circumToR(p.chest)*0.42;
+  const waistR=circumToR(p.waist)*0.42;
+  const hipR=circumToR(p.hip)*0.42;
+  const shoulderW=p.shoulder*0.42;
+  const armR=5.2*scale;
+  const legR=circumToR(p.thigh)*0.38;
+  const totalH=p.h*1.15;
+
+  const YOffset=-totalH*0.5;
+  const headH=totalH*0.13;
+  const neckH=totalH*0.04;
+  const torsoH=totalH*0.32;
+  const armH=p.arm*0.95;
+  const legH=p.leg*0.95;
+
+  const headY=YOffset;
+  const neckY=headY+headH*0.8;
+  const torsoY=neckY+neckH;
+  const legY=torsoY+torsoH;
+
+  const allFaces=[];
+  const cloth=clothes[clothIndex];
+
+  const headA=headH*0.44,headB=headH*0.52;
+  const headFaces=makeEllipsoid(0,headY+headH*0.5,0,headA,headB,8,12);
+  headFaces.forEach(f=>{f._color=SKIN;f._colorD=SKIN_D;});
+  allFaces.push(...headFaces);
+
+  const neckR=6*scale;
+  const neckFaces=makeCylinder(0,neckY,-1,neckR,neckH,8);
+  neckFaces.forEach(f=>{f._color=SKIN;f._colorD=SKIN_D;});
+  allFaces.push(...neckFaces);
+
+  const clothType=cloth.type;
+  const showClothTop=(clothType==='top'||clothType==='full');
+  const showClothBottom=(clothType==='bottom'||clothType==='full');
+  const clothChestR=showClothTop?circumToR(cloth.chest)*0.44:chestR;
+  const clothWaistR=showClothTop?circumToR(cloth.waist||cloth.chest)*0.44:waistR;
+
+  const torsoSegs=14;
+  const torsoFaces=[];
+  for(let i=0;i<torsoSegs;i++){
+    const t0=i/torsoSegs,t1=(i+1)/torsoSegs;
+    const r0=showClothTop?lerp(clothChestR,clothWaistR,t0):lerp(chestR,waistR,t0);
+    const r1=showClothTop?lerp(clothChestR,clothWaistR,t1):lerp(chestR,waistR,t1);
+    const y0=torsoY+torsoH*t0,y1=torsoY+torsoH*t1;
+    const segs=12;
+    for(let j=0;j<segs;j++){
+      const a0=2*Math.PI*j/segs,a1=2*Math.PI*(j+1)/segs;
+      const verts=[
+        {x:r0*Math.cos(a0),y:y0,z:r0*Math.sin(a0)},
+        {x:r0*Math.cos(a1),y:y0,z:r0*Math.sin(a1)},
+        {x:r1*Math.cos(a1),y:y1,z:r1*Math.sin(a1)},
+        {x:r1*Math.cos(a0),y:y1,z:r1*Math.sin(a0)},
+      ];
+      const mid=(a0+a1)/2,mx=(a0+a1)/2;
+      torsoFaces.push({verts,nx:Math.cos(mid),ny:0,nz:Math.sin(mid)});
+    }
+  }
+  torsoFaces.forEach(f=>{
+    f._color=showClothTop?clothColor:SKIN;
+    f._colorD=showClothTop?clothColorDark:SKIN_D;
+  });
+  allFaces.push(...torsoFaces);
+
+  const armOffset=shoulderW*0.5;
+  for(const side of[-1,1]){
+    const armFaces=makeCylinder(side*armOffset,torsoY,0,armR,armH,'y');
+    armFaces.forEach(f=>{
+      f._color=showClothTop?clothColor:SKIN;
+      f._colorD=showClothTop?clothColorDark:SKIN_D;
+    });
+    allFaces.push(...armFaces);
+  }
+
+  const hipClothR=showClothBottom?circumToR(cloth.hip||cloth.waist)*0.44:hipR;
+  const waistClothR=showClothBottom?circumToR(cloth.waist)*0.44:waistR;
+
+  for(const side of[-1,1]){
+    const legSegs=10;
+    const legFaces=[];
+    for(let i=0;i<legSegs;i++){
+      const t0=i/legSegs,t1=(i+1)/legSegs;
+      const baseR=showClothBottom?lerp(hipClothR*0.52,legR*0.85,t0):lerp(hipR*0.52,legR,t0);
+      const topR=showClothBottom?lerp(hipClothR*0.52,legR*0.85,t1):lerp(hipR*0.52,legR,t1);
+      const y0=legY+legH*t0,y1=legY+legH*t1;
+      const lx2=side*(showClothBottom?hipClothR*0.36:hipR*0.36);
+      const segs=10;
+      for(let j=0;j<segs;j++){
+        const a0=2*Math.PI*j/segs,a1=2*Math.PI*(j+1)/segs;
+        legFaces.push({
+          verts:[
+            {x:lx2+baseR*Math.cos(a0),y:y0,z:baseR*Math.sin(a0)},
+            {x:lx2+baseR*Math.cos(a1),y:y0,z:baseR*Math.sin(a1)},
+            {x:lx2+topR*Math.cos(a1),y:y1,z:topR*Math.sin(a1)},
+            {x:lx2+topR*Math.cos(a0),y:y1,z:topR*Math.sin(a0)},
+          ],
+          nx:side*Math.cos((a0+a1)/2),ny:0,nz:Math.sin((a0+a1)/2)
+        });
+      }
+    }
+    legFaces.forEach(f=>{
+      f._color=showClothBottom?clothColor:SKIN;
+      f._colorD=showClothBottom?clothColorDark:SKIN_D;
+    });
+    allFaces.push(...legFaces);
+  }
+
+  allFaces.sort((a,b)=>{
+    const da=a.verts.reduce((s,v)=>{const r=applyRot(v.x,v.y,v.z);return s+r.z;},0)/a.verts.length;
+    const db=b.verts.reduce((s,v)=>{const r=applyRot(v.x,v.y,v.z);return s+r.z;},0)/b.verts.length;
+    return db-da;
+  });
+
+  for(const face of allFaces){
+    const rVerts=face.verts.map(v=>applyRot(v.x,v.y,v.z));
+    const{nx:rnx,ny:rny,nz:rnz}=applyRot(face.nx,face.ny,face.nz);
+    const I=lambert(rnx,rny,rnz,lx,ly);
+    const pts=rVerts.map(v=>project(v.x,v.y,v.z));
+    ctx.beginPath();
+    ctx.moveTo(pts[0].px,pts[0].py);
+    for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].px,pts[i].py);
+    ctx.closePath();
+    const c=face._color||SKIN,cd=face._colorD||SKIN_D;
+    if(viewMode==='solid'){
+      ctx.fillStyle=applyLight(c,I*lightI);
+      ctx.fill();
+      ctx.strokeStyle=applyLight(cd,I*lightI*0.5);
+      ctx.lineWidth=0.25;
+      ctx.stroke();
+    }else if(viewMode==='wire'){
+      ctx.strokeStyle=c;ctx.lineWidth=0.6;ctx.stroke();
+    }else{
+      ctx.fillStyle=`rgba(127,119,221,${0.06+I*lightI*0.16})`;
+      ctx.fill();
+      ctx.strokeStyle=`rgba(83,74,183,${0.25+I*0.4})`;
+      ctx.lineWidth=0.35;ctx.stroke();
+    }
+  }
+
+  updateScores(p);
+  updateMathLog(p);
+}
+
+function lerp(a,b,t){return a+(b-a)*t;}
+
+function euclid(dx,dy){return Math.sqrt(dx*dx+dy*dy);}
+
+function updateScores(p){
+  const cloth=clothes[clothIndex];
+  const chestDiff=cloth.chest-p.chest;
+  const waistDiff=(cloth.waist||cloth.chest)-p.waist;
+  const hipDiff=(cloth.hip||cloth.chest)-p.hip;
+
+  function scoreLabel(diff,el){
+    const d=Math.abs(diff);
+    const score=Math.max(0,100-d*3.5).toFixed(0);
+    const cls=d<=4?'score-good':d<=10?'score-warn':'score-bad';
+    const mark=d<=4?'✓ 적합':d<=10?'△ 보통':'✕ 부적합';
+    el.className='score-num '+cls;
+    el.textContent=`${score}점 (${diff>0?'+':''}${diff}) ${mark}`;
+    return parseFloat(score);
+  }
+
+  let s1=0,s2=0,s3=0;
+  if(cloth.chest>0)s1=scoreLabel(chestDiff,document.getElementById('sc-chest'));
+  else{document.getElementById('sc-chest').textContent='해당없음';}
+  s2=scoreLabel(waistDiff,document.getElementById('sc-waist'));
+  if(cloth.hip>0)s3=scoreLabel(hipDiff,document.getElementById('sc-hip'));
+  else{document.getElementById('sc-hip').textContent='해당없음';}
+
+  const total=((cloth.chest>0?s1:100)+s2+(cloth.hip>0?s3:100))/3;
+  const totalEl=document.getElementById('sc-total');
+  totalEl.textContent=`${total.toFixed(0)}점`;
+  totalEl.className='score-num '+(total>=80?'score-good':total>=60?'score-warn':'score-bad');
+
+  const pill=document.getElementById('fit-pill');
+  if(total>=80){pill.style.background='var(--color-background-success)';pill.style.color='var(--color-text-success)';pill.textContent=`✓ ${total.toFixed(0)}점 · 최적 피팅`;}
+  else if(total>=60){pill.style.background='var(--color-background-warning)';pill.style.color='var(--color-text-warning)';pill.textContent=`△ ${total.toFixed(0)}점 · 사이즈 확인`;}
+  else{pill.style.background='var(--color-background-danger)';pill.style.color='var(--color-text-danger)';pill.textContent=`✕ ${total.toFixed(0)}점 · 부적합`;}
+
+  const cloth2=clothes[clothIndex];
+  let advice='';
+  const cd2=cloth2.chest-p.chest,wd2=(cloth2.waist||cloth2.chest)-p.waist;
+  if(Math.abs(cd2)>10&&cloth2.chest>0)advice+=`가슴 ${cd2>0?'여유 '+cd2+'cm':'타이트 '+Math.abs(cd2)+'cm'}. `;
+  if(Math.abs(wd2)>8)advice+=`허리 ${wd2>0?'여유':'타이트'} ${Math.abs(wd2)}cm. `;
+  document.getElementById('info-box').textContent=advice||(total>=80?'이 의류는 신체 치수에 최적으로 맞습니다! 편안한 착용감이 예상됩니다.':'의류 치수와 신체 치수 차이가 있습니다. 다른 사이즈를 고려해보세요.');
+}
+
+function updateMathLog(p){
+  const chestR=circumToR(p.chest);
+  const log=document.getElementById('math-log');
+  log.innerHTML=`r = ${p.chest}÷(2π) = ${chestR.toFixed(2)}cm<br>d = √(Δx²+Δy²) 피팅점수 계산<br>I = max(N⃗·L⃗, 0) Lambert조명<br>x' = x÷(z/800+1) 원근투영`;
+}
+
+function setView(v){
+  viewMode=v;
+  document.querySelectorAll('.vm-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('vm-'+v).classList.add('active');
+  render();
+}
+function selectCloth(i){
+  clothIndex=i;
+  document.querySelectorAll('.cloth-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  render();
+}
+function setColor(i,c,cd){
+  clothColor=c;clothColorDark=cd;
+  document.querySelectorAll('.color-swatch').forEach((s,j)=>s.classList.toggle('active',j===i));
+  render();
+}
+function resetView(){rotY=0.3;rotX=-0.1;render();}
+function snapFront(){rotY=0;rotX=-0.05;render();}
+function snapSide(){rotY=Math.PI/2;rotX=-0.05;render();}
+function toggleAuto(){
+  autoRotate=!autoRotate;
+  const btn=document.getElementById('btn-auto');
+  btn.classList.toggle('active',autoRotate);
+  btn.textContent=autoRotate?'■ 정지':'▶ 자동 회전';
+  if(autoRotate){
+    (function loop(){if(!autoRotate)return;rotY+=0.012;render();requestAnimationFrame(loop);})();
+  }
+}
+
+canvas.addEventListener('mousedown',e=>{dragging=true;lastX=e.offsetX;lastY=e.offsetY;});
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  const dx=(e.offsetX-lastX),dy=(e.offsetY-lastY);
+  rotY+=dx*0.008;rotX+=dy*0.008;
+  lastX=e.offsetX;lastY=e.offsetY;
+  render();
+});
+canvas.addEventListener('mouseup',()=>dragging=false);
+canvas.addEventListener('mouseleave',()=>dragging=false);
+
+canvas.addEventListener('touchstart',e=>{dragging=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;},{passive:true});
+canvas.addEventListener('touchmove',e=>{
+  if(!dragging)return;
+  const dx=e.touches[0].clientX-lastX,dy=e.touches[0].clientY-lastY;
+  rotY+=dx*0.008;rotX+=dy*0.008;
+  lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+  render();},{passive:true});
+canvas.addEventListener('touchend',()=>dragging=false);
+
+document.querySelectorAll('input[type=range]').forEach(s=>{
+  s.addEventListener('input',function(){
+    const id=this.id.replace('s-','v-');
+    const el=document.getElementById(id);
+    if(el)el.textContent=this.value;
+    render();
+  });
+});
+
+render();
+</script>
